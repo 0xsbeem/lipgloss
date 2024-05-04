@@ -156,12 +156,35 @@ func (r *Renderer) PlaceVertical(height int, pos Position, str string, opts ...W
 	return b.String()
 }
 
+
 // PlaceOverlay places fg on top of bg.
-func PlaceOverlay(x, y int, fg, bg string, opts ...WhitespaceOption) string {
+func PlaceOverlay(
+	x, y int,
+	fg, bg string,
+	shadow bool, opts ...WhitespaceOption,
+) string {
 	fgLines, fgWidth := getLines(fg)
 	bgLines, bgWidth := getLines(bg)
 	bgHeight := len(bgLines)
 	fgHeight := len(fgLines)
+
+	if shadow {
+		var shadowbg string = ""
+		shadowchar := NewStyle().
+			Foreground(Color("#333333")).
+			Render("░")
+		for i := 0; i <= fgHeight; i++ {
+			if i == 0 {
+				shadowbg += " " + strings.Repeat(" ", fgWidth) + "\n"
+			} else {
+				shadowbg += " " + strings.Repeat(shadowchar, fgWidth) + "\n"
+			}
+		}
+
+		fg = PlaceOverlay(0, 0, fg, shadowbg, false, opts...)
+		fgLines, fgWidth = getLines(fg)
+		fgHeight = len(fgLines)
+	}
 
 	if fgWidth >= bgWidth && fgHeight >= bgHeight {
 		// FIXME: return fg or bg?
